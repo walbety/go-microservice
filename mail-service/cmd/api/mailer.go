@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"html/template"
+	"log"
 	"time"
 
 	"github.com/vanng822/go-premailer/premailer"
@@ -49,12 +50,13 @@ func (m *Mail) SendSMTPMessage(msg Message) error{
 	if err != nil {
 		return err
 	}
-
+	
 	plainMessage, err := m.buildPlainTextMessage(msg)
 	if err != nil {
+		log.Println(err)
 		return err
 	}
-
+	
 	server := mail.NewSMTPClient()
 	server.Host = m.Host
 	server.Port = m.Port
@@ -95,18 +97,18 @@ func (m *Mail) SendSMTPMessage(msg Message) error{
 }
 
 func (m *Mail) buildHTMLMessage(msg Message) (string, error){
-	templateToRender := "./templates/mail.gohtml"
+	templateToRender := "./templates/mail.html.gohtml"
 
 	t, err := template.New("email-html").ParseFiles(templateToRender)
 	if err != nil {
 		return "", err
 	}
-
+	
 	var tpl bytes.Buffer
-	if err = t.ExecuteTemplate(&tpl, "body", msg.Data); err != nil{
+	if err = t.ExecuteTemplate(&tpl, "body", msg.DataMap); err != nil{
 		return "", err
 	}
-
+	
 	formattedMessage := tpl.String()
 	formattedMessage, err = m.inlineCSS(formattedMessage)
 	if err != nil {
@@ -126,7 +128,7 @@ func (m *Mail) buildPlainTextMessage(msg Message) (string, error){
 	}
 
 	var tpl bytes.Buffer
-	if err = t.ExecuteTemplate(&tpl, "body", msg.Data); err != nil{
+	if err = t.ExecuteTemplate(&tpl, "body", msg.DataMap); err != nil{
 		return "", err
 	}
 
