@@ -31,16 +31,16 @@ type Message struct {
 	DataMap     map[string]any
 }
 
-func (m *Mail) SendSMTPMessage(msg Message) error{
-	if msg.From == ""{
+func (m *Mail) SendSMTPMessage(msg Message) error {
+	if msg.From == "" {
 		msg.From = m.FromAddress
 	}
 
-	if msg.FromName == ""{
+	if msg.FromName == "" {
 		msg.FromName = m.FromName
 	}
 
-	data := map[string]any {
+	data := map[string]any{
 		"message": msg.Data,
 	}
 
@@ -50,13 +50,13 @@ func (m *Mail) SendSMTPMessage(msg Message) error{
 	if err != nil {
 		return err
 	}
-	
+
 	plainMessage, err := m.buildPlainTextMessage(msg)
 	if err != nil {
 		log.Println(err)
 		return err
 	}
-	
+
 	server := mail.NewSMTPClient()
 	server.Host = m.Host
 	server.Port = m.Port
@@ -67,7 +67,7 @@ func (m *Mail) SendSMTPMessage(msg Message) error{
 	server.ConnectTimeout = 10 * time.Second
 	server.SendTimeout = 10 * time.Second
 
-	smtpClient, err := server.Connect() 
+	smtpClient, err := server.Connect()
 	if err != nil {
 		return err
 	}
@@ -93,22 +93,21 @@ func (m *Mail) SendSMTPMessage(msg Message) error{
 
 	return nil
 
-
 }
 
-func (m *Mail) buildHTMLMessage(msg Message) (string, error){
+func (m *Mail) buildHTMLMessage(msg Message) (string, error) {
 	templateToRender := "./templates/mail.html.gohtml"
 
 	t, err := template.New("email-html").ParseFiles(templateToRender)
 	if err != nil {
 		return "", err
 	}
-	
+
 	var tpl bytes.Buffer
-	if err = t.ExecuteTemplate(&tpl, "body", msg.DataMap); err != nil{
+	if err = t.ExecuteTemplate(&tpl, "body", msg.DataMap); err != nil {
 		return "", err
 	}
-	
+
 	formattedMessage := tpl.String()
 	formattedMessage, err = m.inlineCSS(formattedMessage)
 	if err != nil {
@@ -119,7 +118,7 @@ func (m *Mail) buildHTMLMessage(msg Message) (string, error){
 
 }
 
-func (m *Mail) buildPlainTextMessage(msg Message) (string, error){
+func (m *Mail) buildPlainTextMessage(msg Message) (string, error) {
 	templateToRender := "./templates/mail.plain.gohtml"
 
 	t, err := template.New("email-plain").ParseFiles(templateToRender)
@@ -128,7 +127,7 @@ func (m *Mail) buildPlainTextMessage(msg Message) (string, error){
 	}
 
 	var tpl bytes.Buffer
-	if err = t.ExecuteTemplate(&tpl, "body", msg.DataMap); err != nil{
+	if err = t.ExecuteTemplate(&tpl, "body", msg.DataMap); err != nil {
 		return "", err
 	}
 
@@ -138,10 +137,10 @@ func (m *Mail) buildPlainTextMessage(msg Message) (string, error){
 
 }
 
-func (m *Mail) inlineCSS(s string) (string, error){
+func (m *Mail) inlineCSS(s string) (string, error) {
 	options := premailer.Options{
-		RemoveClasses: false,
-		CssToAttributes: false,
+		RemoveClasses:     false,
+		CssToAttributes:   false,
 		KeepBangImportant: true,
 	}
 
@@ -167,6 +166,6 @@ func (m *Mail) getEncryption(s string) mail.Encryption {
 	case "none", "":
 		return mail.EncryptionNone
 	default:
-			return mail.EncryptionSTARTTLS
+		return mail.EncryptionSTARTTLS
 	}
 }
